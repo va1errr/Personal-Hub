@@ -1,0 +1,10 @@
+spring.application.name: personal-hub
+
+spring.datasource:
+  url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:?POSTGRES_DB is required}
+  username: ${POSTGRES_USER:postgres}
+  password: ${POSTGRES_PASSWORD:postgres}
+
+spring.jpa:
+  hibernate.ddl-auto: validate
+  open-in-view: false

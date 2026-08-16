@@ -5,6 +5,7 @@
 ### Fields
 
 - `id`
+- `user_id`
 - `content`
 - `status`
 - `created_at`
@@ -28,6 +29,7 @@
 ### Fields
 
 - `id`
+- `user_id`
 - `inbox_item_id`
 - `title`
 - `description`
@@ -63,6 +65,7 @@
 ### Fields
 
 - `id`
+- `user_id`
 - `inbox_item_id`
 - `content`
 - `created_at`
@@ -77,7 +80,7 @@
 ### Fields
 
 - `id`
-- `note_id`
+- `user_id`
 - `tag`
 
 ### Business Rules
@@ -91,7 +94,7 @@
 - `id`
 - `tg_user_id`
 - `tg_username`
-- `createdAt`
+- `created_at`
 
 ### Business Rules
 
@@ -102,7 +105,6 @@
 
 ### Fields
 
-- `id`
 - `user_id`
 - `timezone`
 

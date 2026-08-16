@@ -6,7 +6,7 @@ Telegram-based system for organizing any information.
 
 - [Product Description](docs/product.md)
 - [Data Model](docs/data-model.md)
-- [Domain](docs/data-model.md)
+- [Domain](docs/domain.md)
 - [Backlog](docs/backlog.md)
 
 ## Status

@@ -1,4 +1,4 @@
-package main.java.com.va1err.personalhub;
+package com.va1err.personalhub;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

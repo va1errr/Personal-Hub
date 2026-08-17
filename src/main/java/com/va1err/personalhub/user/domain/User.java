@@ -5,6 +5,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SourceType;
 
 import java.time.Instant;
+import java.util.Objects;
 
 @Entity
 @Table(name = "users")
@@ -22,5 +23,39 @@ public class User {
     @CreationTimestamp(source = SourceType.DB)
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    protected User() {
+
+    }
+
+    private User(Long tgUserId, String tgUsername) {
+        this.tgUserId = Objects.requireNonNull(
+                tgUserId,
+                "Telegram user ID must not be null"
+        );
+
+        this.tgUsername = normalizeUsername(tgUsername);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getTgUserId() {
+        return tgUserId;
+    }
+
+    public static User register(Long tgUserId, String tgUsername) {
+        return new User(tgUserId, tgUsername);
+    }
+
+    private static String normalizeUsername(String username) {
+        if (username == null || username.isBlank()) {
+            return null;
+        }
+
+        return username.strip();
+    }
+
 
 }

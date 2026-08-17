@@ -1,7 +1,6 @@
 package com.va1err.personalhub.user.application;
 
 import com.va1err.personalhub.shared.exception.DuplicateTgUserIdException;
-import com.va1err.personalhub.shared.exception.NullTgUserIdException;
 import com.va1err.personalhub.user.domain.User;
 import com.va1err.personalhub.user.infrastructure.UserRepository;
 import org.springframework.stereotype.Service;
@@ -18,10 +17,6 @@ public class UserService {
 
     @Transactional
     public User registerUser(Long tgUserId, String tgUsername) {
-        if (tgUserId == null) {
-            throw new NullTgUserIdException();
-        }
-
         if (userRepository.existsByTgUserId(tgUserId)) {
             throw new DuplicateTgUserIdException(tgUserId);
         }

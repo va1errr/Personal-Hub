@@ -1,7 +1,6 @@
 package com.va1err.personalhub.service;
 
 import com.va1err.personalhub.shared.exception.DuplicateTgUserIdException;
-import com.va1err.personalhub.shared.exception.NullTgUserIdException;
 import com.va1err.personalhub.user.application.UserService;
 import com.va1err.personalhub.user.domain.User;
 import com.va1err.personalhub.user.infrastructure.UserRepository;
@@ -28,16 +27,6 @@ class UserServiceTest {
 
     @Captor
     private ArgumentCaptor<User> userCaptor;
-
-    @Test
-    void registerUser_shouldRejectNullTgUserId() {
-        assertThrows(
-            NullTgUserIdException.class,
-            () -> userService.registerUser(null, null)
-        );
-        verifyNoInteractions(userRepository);
-
-    }
 
     @Test
     void registerUser_shouldRejectDuplicateTgUserId() {

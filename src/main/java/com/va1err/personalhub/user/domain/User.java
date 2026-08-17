@@ -49,6 +49,10 @@ public class User {
         return tgUsername;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
     public static User register(Long tgUserId, String tgUsername) {
         return new User(tgUserId, tgUsername);
     }

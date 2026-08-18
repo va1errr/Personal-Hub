@@ -1,9 +1,5 @@
 package com.va1err.personalhub.telegram;
 
-import com.va1err.personalhub.telegram.command.TelegramCommand;
-import com.va1err.personalhub.telegram.message.TelegramMessageDeleter;
-import com.va1err.personalhub.telegram.message.TelegramMessageSender;
-import com.va1err.personalhub.telegram.message.TelegramMessages;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +13,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @ConditionalOnTelegramEnabled
 @Component
@@ -29,28 +22,17 @@ public class TelegramBot implements LongPollingUpdateConsumer {
         LoggerFactory.getLogger(TelegramBot.class);
 
     private final String botToken;
-    private final Map<String, TelegramCommand> commands;
     private final TelegramBotsLongPollingApplication application;
-    private final TelegramMessageSender messageSender;
-    private final TelegramMessageDeleter messageDeleter;
+    private final TelegramMessageRouter messageRouter;
 
     public TelegramBot(
         @Value("${telegram.bot.token}") String botToken,
-        List<TelegramCommand> commands,
-        TelegramMessageSender messageSender,
-        TelegramMessageDeleter messageDeleter
+        TelegramMessageRouter messageRouter
     ) {
         this.botToken = botToken;
 
-        this.commands = commands.stream()
-            .collect(Collectors.toUnmodifiableMap(
-                TelegramCommand::name,
-                Function.identity()
-            ));
-
         this.application = new TelegramBotsLongPollingApplication();
-        this.messageSender = messageSender;
-        this.messageDeleter = messageDeleter;
+        this.messageRouter = messageRouter;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -70,55 +52,7 @@ public class TelegramBot implements LongPollingUpdateConsumer {
             return;
         }
 
-        var message = update.getMessage();
-
-        if (!message.isUserMessage()) {
-            return;
-        }
-
-        if (message.getFrom() == null) {
-            return;
-        }
-
-        if (!message.hasText()) {
-            return;
-        }
-
-        String text = message.getText().trim();
-
-        if (!text.startsWith("/")) {
-            return;
-        }
-
-        String commandName = text
-            .split("\\s+", 2)[0];
-
-        int botMentionIndex = commandName.indexOf("@");
-
-        if (botMentionIndex >= 0) {
-            commandName = commandName.substring(0, botMentionIndex);
-        }
-
-        TelegramCommand command = commands.get(commandName);
-
-        if (command == null) {
-            boolean responseSent = messageSender.send(
-                message.getChatId(),
-                TelegramMessages.unknownCommand(commandName)
-            );
-
-            if (responseSent) {
-                messageDeleter.delete(
-                    message.getChatId(),
-                    message.getMessageId()
-                );
-
-            }
-
-            return;
-        }
-
-        command.execute(message);
+        messageRouter.route(update.getMessage());
     }
 
     @PreDestroy

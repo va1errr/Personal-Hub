@@ -3,7 +3,7 @@ package com.va1err.personalhub.telegram.handler;
 import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
 import com.va1err.personalhub.telegram.message.MessageDeleter;
 import com.va1err.personalhub.telegram.message.MessageSender;
-import com.va1err.personalhub.telegram.message.Messages;
+import com.va1err.personalhub.telegram.message.TelegramMessages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -34,7 +34,7 @@ public class UnknownCommandHandler implements MessageHandler {
 
     public void handle(Message message, String commandName) {
         boolean messageSent = messageSender.send(
-            message.getChatId(), Messages.unknownCommand(commandName)
+            message.getChatId(), TelegramMessages.unknownCommand(commandName)
         );
 
         if (messageSent) {

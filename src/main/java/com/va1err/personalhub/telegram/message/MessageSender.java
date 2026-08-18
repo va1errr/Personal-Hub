@@ -4,6 +4,7 @@ import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
@@ -25,6 +26,7 @@ public class MessageSender {
         SendMessage request = SendMessage.builder()
             .chatId(chatId)
             .text(text)
+            .parseMode(ParseMode.HTML)
             .build();
 
         try {

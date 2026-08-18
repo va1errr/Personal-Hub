@@ -1,6 +1,6 @@
-package com.va1err.personalhub.telegram.command;
+package com.va1err.personalhub.telegram.handler;
 
-import com.va1err.personalhub.api.user.RegisterUserRequest;
+import com.va1err.personalhub.api.inbox.AddInboxItemRequest;
 import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
 import com.va1err.personalhub.telegram.message.MessageDeleter;
 import com.va1err.personalhub.telegram.message.MessageSender;
@@ -12,23 +12,24 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
 @ConditionalOnTelegramEnabled
 @Component
-public class StartCommand implements Command {
+public class InboxCaptureHandler implements MessageHandler {
 
     private static final Logger log =
-        LoggerFactory.getLogger(StartCommand.class);
+        LoggerFactory.getLogger(InboxCaptureHandler.class);
 
     private final RestClient client;
     private final MessageSender messageSender;
     private final MessageDeleter messageDeleter;
 
-    public StartCommand(
+    public InboxCaptureHandler(
+        @Value("${api.base-url}") String baseUrl,
         RestClient.Builder restClientBuilder,
         MessageSender messageSender,
-        MessageDeleter messageDeleter,
-        @Value("${api.base-url}") String baseUrl
+        MessageDeleter messageDeleter
     ) {
         this.client = restClientBuilder
             .baseUrl(baseUrl)
@@ -39,49 +40,35 @@ public class StartCommand implements Command {
     }
 
     @Override
-    public String name() {
-        return "/start";
-    }
-
-    @Override
-    public void execute(Message message) {
+    public void handle(Message message) {
         Long tgUserId = message.getFrom().getId();
-        String tgUsername = message.getFrom().getUserName();
+        String content = message.getText();
 
-        RegisterUserRequest request = new RegisterUserRequest(
-            tgUserId,
-            tgUsername
-        );
+        AddInboxItemRequest request = new AddInboxItemRequest(tgUserId, content);
 
         String responseText;
 
         try {
             responseText = client.post()
-                .uri("/users")
+                .uri("/inbox")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .exchange((httpRequest, httpResponse) -> {
                     int status = httpResponse.getStatusCode().value();
 
                     if (status >= 200 && status < 300) {
-                        return TelegramMessages.registrationCompleted(
-                            message.getFrom().getFirstName(),
-                            message.getFrom().getLastName()
-                        );
+                        return TelegramMessages.inboxItemSaved(content);
                     }
 
-                    if (status == 409) {
-                        return TelegramMessages.alreadyRegistered(
-                            message.getFrom().getFirstName(),
-                            message.getFrom().getLastName()
-                        );
+                    if (status == 404) {
+                        return TelegramMessages.registrationRequired();
                     }
 
                     throw new IllegalStateException("API return HTTP " + status);
                 });
         } catch (RuntimeException exception) {
             log.error(
-                "Registration API request failed for Telegram user {}",
+                "Inbox capturing API request failed for Telegram user {}",
                 tgUserId,
                 exception
             );

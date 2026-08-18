@@ -2,7 +2,7 @@
 
 | Module       | Feature                  | Description                                    | Priority | Done |
 |--------------|--------------------------|------------------------------------------------|----------|------|
-| `Inbox`      | Quick capture            | Any text is saved instantly                    | `V1`     | ❌    |
+| `Inbox`      | Quick capture            | Any text is saved instantly                    | `V1`     | ✅    |
 |              | Inbox processing         | Process a record: `Task`/`Note`/`Link`/`Place` | `V1`     | ❌    |
 |              | Archive                  | Hide unnecessary record without deleting       | `V2`     | ❌    |
 |              | Pin                      | Pin important records                          | `V2`     | ❌    |

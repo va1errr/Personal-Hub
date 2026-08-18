@@ -1,6 +1,10 @@
 package com.va1err.personalhub.integration;
 
 import com.va1err.personalhub.config.PostgresTestContainerConfig;
+import com.va1err.personalhub.inbox.domain.InboxItem;
+import com.va1err.personalhub.inbox.domain.InboxItemStatus;
+import com.va1err.personalhub.inbox.infrastructure.InboxItemRepository;
+import com.va1err.personalhub.telegram.TelegramBot;
 import com.va1err.personalhub.user.domain.User;
 import com.va1err.personalhub.user.infrastructure.UserRepository;
 import jakarta.persistence.EntityManager;
@@ -11,11 +15,13 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -24,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @Import(PostgresTestContainerConfig.class)
-public class UserRegisterIntegrationTest {
+public class InboxItemAddIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -33,35 +39,44 @@ public class UserRegisterIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private InboxItemRepository inboxItemRepository;
+
+    @Autowired
     private EntityManager entityManager;
 
     @Test
-    void registerUser_shouldRegisterUser() throws Exception {
-        mockMvc.perform(post("/users")
+    void addInboxItem_shouldAddInboxItem() throws Exception {
+        Long userId = 12345L;
+
+        User savedUser = userRepository.saveAndFlush(
+            User.register(userId, null)
+        );
+
+        mockMvc.perform(post("/inbox")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
                         "tgUserId": 12345,
-                        "tgUsername": "test"
+                        "content": "test"
                     }
                     """))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.id").isNumber())
-            .andExpect(jsonPath("$.tgUserId").value("12345"))
-            .andExpect(jsonPath("$.tgUsername").value("test"))
+            .andExpect(jsonPath("$.userId").value(savedUser.getId()))
+            .andExpect(jsonPath("$.status").value(InboxItemStatus.ACTIVE.toString()))
+            .andExpect(jsonPath("$.content").value("test"))
             .andExpect(jsonPath("$.createdAt").exists());
 
         entityManager.flush();
         entityManager.clear();
 
-        User result = userRepository.findByTgUserId(12345L)
-            .orElseThrow();
+        List<InboxItem> result = inboxItemRepository.findAll();
 
-        assertNotNull(result.getId());
-        assertEquals(12345L, result.getTgUserId());
-        assertEquals("test", result.getTgUsername());
-        assertNotNull(result.getCreatedAt());
+        assertEquals(1, result.size());
+        assertEquals(userId, result.getFirst().getUser().getTgUserId());
+        assertEquals(InboxItemStatus.ACTIVE, result.getFirst().getStatus());
+        assertEquals("test", result.getFirst().getContent());
     }
 
 }

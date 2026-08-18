@@ -1,5 +1,6 @@
 package com.va1err.personalhub.telegram.command;
 
+import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
 import com.va1err.personalhub.telegram.message.TelegramMessageDeleter;
 import com.va1err.personalhub.telegram.message.TelegramMessageSender;
 import com.va1err.personalhub.telegram.message.TelegramMessages;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
+@ConditionalOnTelegramEnabled
 @Component
 public class StartMessage implements TelegramCommand {
 

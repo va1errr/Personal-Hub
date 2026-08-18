@@ -1,13 +1,14 @@
 package com.va1err.personalhub.telegram.message;
 
+import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+@ConditionalOnTelegramEnabled
 @Component
 public class TelegramMessageDeleter {
 

@@ -10,6 +10,7 @@ spring.jpa:
   open-in-view: false
 
 telegram.bot:
+  enabled: ${TELEGRAM_BOT_ENABLED:false}
   token: ${TELEGRAM_BOT_TOKEN}
 
 api.base-url: ${API_BASE_URL:http://localhost:8080}

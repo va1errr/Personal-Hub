@@ -30,4 +30,29 @@ public class InboxItem {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    protected InboxItem() {
+
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public InboxItemStatus getStatus() {
+        return status;
+    }
+
+    private InboxItem(User user, String content) {
+        this.user = user;
+        this.content = content;
+    }
+
+    public static InboxItem add(User user, String content) {
+        return new InboxItem(user, content);
+    }
+
 }

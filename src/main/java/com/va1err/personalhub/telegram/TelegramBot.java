@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@ConditionalOnTelegramEnabled
 @Component
 public class TelegramBot implements LongPollingUpdateConsumer {
 

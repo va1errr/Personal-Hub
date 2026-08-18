@@ -8,3 +8,8 @@ spring.datasource:
 spring.jpa:
   hibernate.ddl-auto: validate
   open-in-view: false
+
+telegram.bot:
+  token: ${TELEGRAM_BOT_TOKEN}
+
+api.base-url: ${API_BASE_URL:http://localhost:8080}

@@ -1,6 +1,9 @@
 package com.va1err.personalhub.telegram;
 
 import com.va1err.personalhub.telegram.handler.CommandHandler;
+import com.va1err.personalhub.telegram.handler.InboxCaptureHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
@@ -8,12 +11,18 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 @Component
 public class TelegramMessageRouter {
 
+    private static final Logger log =
+        LoggerFactory.getLogger(TelegramMessageRouter.class);
+
     private final CommandHandler commandHandler;
+    private final InboxCaptureHandler inboxCaptureHandler;
 
     public TelegramMessageRouter(
-        CommandHandler commandHandler
+        CommandHandler commandHandler,
+        InboxCaptureHandler inboxCaptureHandler
     ) {
         this.commandHandler = commandHandler;
+        this.inboxCaptureHandler = inboxCaptureHandler;
     }
 
     public void route(Message message) {
@@ -28,6 +37,7 @@ public class TelegramMessageRouter {
         String text = message.getText().trim();
 
         if (!text.startsWith("/")) {
+            inboxCaptureHandler.handle(message);
             return;
         }
 

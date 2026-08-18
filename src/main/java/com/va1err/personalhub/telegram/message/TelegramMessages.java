@@ -1,8 +1,8 @@
 package com.va1err.personalhub.telegram.message;
 
-public final class Messages {
+public final class TelegramMessages {
 
-    private Messages() {
+    private TelegramMessages() {
 
     }
 
@@ -24,7 +24,7 @@ public final class Messages {
             """.formatted(firstName, lastName);
     }
 
-    public static String registrationUnavailable() {
+    public static String systemUnavailable() {
         return """
             Personal Hub is temporarily unavailable.
 
@@ -36,6 +36,20 @@ public final class Messages {
         return """
             Sorry, I don't recognize command %s.
             """.formatted(command);
+    }
+
+    public static String inboxItemSaved(String content) {
+        return """
+            Saved to your inbox ✅:
+
+            <i>%s</i>
+            """.formatted(content);
+    }
+
+    public static String registrationRequired() {
+        return """
+            Please use /start to use bot.
+            """;
     }
 
 }

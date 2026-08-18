@@ -10,14 +10,14 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @ConditionalOnTelegramEnabled
 @Component
-public class TelegramMessageSender {
+public class MessageSender {
 
     private static final Logger log =
-        LoggerFactory.getLogger(TelegramMessageSender.class);
+        LoggerFactory.getLogger(MessageSender.class);
 
     private final TelegramClient telegramClient;
 
-    public TelegramMessageSender(TelegramClient telegramClient) {
+    public MessageSender(TelegramClient telegramClient) {
         this.telegramClient = telegramClient;
     }
 

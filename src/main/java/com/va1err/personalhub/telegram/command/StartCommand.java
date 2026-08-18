@@ -1,9 +1,9 @@
 package com.va1err.personalhub.telegram.command;
 
 import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
-import com.va1err.personalhub.telegram.message.TelegramMessageDeleter;
-import com.va1err.personalhub.telegram.message.TelegramMessageSender;
-import com.va1err.personalhub.telegram.message.TelegramMessages;
+import com.va1err.personalhub.telegram.message.MessageDeleter;
+import com.va1err.personalhub.telegram.message.MessageSender;
+import com.va1err.personalhub.telegram.message.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,19 +14,19 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 @ConditionalOnTelegramEnabled
 @Component
-public class StartMessage implements TelegramCommand {
+public class StartCommand implements Command {
 
     private static final Logger log =
-        LoggerFactory.getLogger(StartMessage.class);
+        LoggerFactory.getLogger(StartCommand.class);
 
     private final RestClient client;
-    private final TelegramMessageSender messageSender;
-    private final TelegramMessageDeleter messageDeleter;
+    private final MessageSender messageSender;
+    private final MessageDeleter messageDeleter;
 
-    public StartMessage(
+    public StartCommand(
         RestClient.Builder restClientBuilder,
-        TelegramMessageSender messageSender,
-        TelegramMessageDeleter messageDeleter,
+        MessageSender messageSender,
+        MessageDeleter messageDeleter,
         @Value("${api.base-url}") String baseUrl
     ) {
         this.client = restClientBuilder
@@ -63,14 +63,14 @@ public class StartMessage implements TelegramCommand {
                     int status = httpResponse.getStatusCode().value();
 
                     if (status >= 200 && status < 300) {
-                        return TelegramMessages.registrationCompleted(
+                        return Messages.registrationCompleted(
                             message.getFrom().getFirstName(),
                             message.getFrom().getLastName()
                         );
                     }
 
                     if (status == 409) {
-                        return TelegramMessages.alreadyRegistered(
+                        return Messages.alreadyRegistered(
                             message.getFrom().getFirstName(),
                             message.getFrom().getLastName()
                         );
@@ -85,7 +85,7 @@ public class StartMessage implements TelegramCommand {
                 exception
             );
 
-            responseText = TelegramMessages.registrationUnavailable();
+            responseText = Messages.registrationUnavailable();
         }
 
         boolean responseSent = messageSender.send(message.getChatId(), responseText);

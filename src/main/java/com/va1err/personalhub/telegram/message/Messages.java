@@ -1,8 +1,8 @@
 package com.va1err.personalhub.telegram.message;
 
-public final class TelegramMessages {
+public final class Messages {
 
-    private TelegramMessages() {
+    private Messages() {
 
     }
 

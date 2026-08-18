@@ -34,6 +34,10 @@ public class InboxItem {
 
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public User getUser() {
         return user;
     }
@@ -46,13 +50,25 @@ public class InboxItem {
         return status;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
     private InboxItem(User user, String content) {
         this.user = user;
-        this.content = content;
+        this.content = InboxItem.normalizeContent(content);
     }
 
     public static InboxItem add(User user, String content) {
         return new InboxItem(user, content);
+    }
+
+    private static String normalizeContent(String content) {
+        if (content == null || content.isBlank()) {
+            return null;
+        }
+
+        return content.strip();
     }
 
 }

@@ -44,4 +44,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleUserNotFound(UserNotFoundException exception) {
+        ApiErrorResponse response = new ApiErrorResponse(
+            HttpStatus.NOT_FOUND.value(),
+            exception.getMessage(),
+            null
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
 }

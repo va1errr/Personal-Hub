@@ -2,6 +2,7 @@ package com.va1err.personalhub.controller;
 
 import com.va1err.personalhub.api.user.UserController;
 import com.va1err.personalhub.shared.exception.DuplicateTgUserIdException;
+import com.va1err.personalhub.shared.exception.DuplicateUserSettingsException;
 import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.shared.exception.UserNotFoundException;
 import com.va1err.personalhub.user.application.UserService;
@@ -151,6 +152,29 @@ class UserControllerTest {
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.message").value("User with ID=" + id + " not found"))
+            .andExpect(jsonPath("$.errors").doesNotHaveJsonPath());
+
+        verify(userSettingsService).initializeUserSettings(id, timezone);
+    }
+
+    @Test
+    void initializeUserSettings_shouldReturnConflictWhenUserSettingsAlreadyInitialized() throws Exception {        Long id = 11L;
+        String timezone = "Europe/Moscow";
+
+        when(userSettingsService.initializeUserSettings(id, timezone)).
+            thenThrow(new DuplicateUserSettingsException(id));
+
+        mockMvc.perform(post("/users/" + id + "/settings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "timezone": "Europe/Moscow"
+                    }
+                    """))
+            .andExpect(status().isConflict())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.status").value(409))
+            .andExpect(jsonPath("$.message").value("Settings for user with ID=" + id + " already initialized"))
             .andExpect(jsonPath("$.errors").doesNotHaveJsonPath());
 
         verify(userSettingsService).initializeUserSettings(id, timezone);

@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserSettingsTest {
+class UserSettingsServiceTest {
 
     @InjectMocks
     private UserSettingsService userSettingsService;

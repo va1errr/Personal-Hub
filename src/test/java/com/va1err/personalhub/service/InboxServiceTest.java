@@ -4,7 +4,7 @@ import com.va1err.personalhub.inbox.application.InboxService;
 import com.va1err.personalhub.inbox.domain.InboxItem;
 import com.va1err.personalhub.inbox.domain.InboxItemStatus;
 import com.va1err.personalhub.inbox.infrastructure.InboxItemRepository;
-import com.va1err.personalhub.shared.exception.UserNotFoundException;
+import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.user.domain.User;
 import com.va1err.personalhub.user.infrastructure.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +42,7 @@ class InboxServiceTest {
         when(userRepository.findByTgUserId(userId)).thenReturn(Optional.empty());
 
         assertThrows(
-            UserNotFoundException.class,
+            TgUserNotFoundException.class,
             () -> inboxService.addInboxItem(userId, "test")
         );
         verify(userRepository).findByTgUserId(userId);

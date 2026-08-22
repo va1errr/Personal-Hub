@@ -1,5 +1,6 @@
 package com.va1err.personalhub.service;
 
+import com.va1err.personalhub.shared.exception.DuplicateUserSettingsException;
 import com.va1err.personalhub.shared.exception.UserNotFoundException;
 import com.va1err.personalhub.user.application.UserSettingsService;
 import com.va1err.personalhub.user.domain.User;
@@ -48,6 +49,25 @@ class UserSettingsServiceTest {
         );
         verify(userRepository).findById(id);
         verifyNoInteractions(userSettingsRepository);
+    }
+
+    @Test
+    void initializeUserSettings_shouldRejectDuplicates() {
+        Long id = 11L;
+        String timezone = "Europe/Moscow";
+
+        User user = mock(User.class);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(userSettingsRepository.existsByUserId(id)).thenReturn(true);
+
+        assertThrows(
+            DuplicateUserSettingsException.class,
+            () -> userSettingsService.initializeUserSettings(id, timezone)
+        );
+        verify(userRepository).findById(id);
+        verify(userSettingsRepository).existsByUserId(id);
+        verifyNoMoreInteractions(userSettingsRepository);
     }
 
     @Test

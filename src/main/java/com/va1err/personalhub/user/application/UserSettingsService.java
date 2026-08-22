@@ -1,5 +1,6 @@
 package com.va1err.personalhub.user.application;
 
+import com.va1err.personalhub.shared.exception.DuplicateUserSettingsException;
 import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.shared.exception.UserNotFoundException;
 import com.va1err.personalhub.user.domain.User;
@@ -27,6 +28,10 @@ public class UserSettingsService {
     public UserSettings initializeUserSettings(Long id, String timezone) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new UserNotFoundException(id));
+
+        if (userSettingsRepository.existsByUserId(id)) {
+            throw new DuplicateUserSettingsException(id);
+        }
 
         return userSettingsRepository.save(
             UserSettings.add(user, timezone)

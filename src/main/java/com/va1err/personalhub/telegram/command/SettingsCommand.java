@@ -6,9 +6,7 @@ import com.va1err.personalhub.telegram.message.MessageSender;
 import com.va1err.personalhub.telegram.message.TelegramMessages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -23,20 +21,13 @@ public class SettingsCommand implements Command {
     private static final Logger log =
         LoggerFactory.getLogger(SettingsCommand.class);
 
-    private final RestClient client;
     private final MessageSender messageSender;
     private final MessageDeleter messageDeleter;
 
     public SettingsCommand(
-        @Value("${api.base-url}") String baseUrl,
-        RestClient.Builder restClientBuild,
         MessageSender messageSender,
         MessageDeleter messageDeleter
     ) {
-        this.client = restClientBuild
-            .baseUrl(baseUrl)
-            .build();
-
         this.messageSender = messageSender;
         this.messageDeleter = messageDeleter;
     }

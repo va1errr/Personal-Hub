@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
@@ -27,6 +28,29 @@ public class MessageSender {
             .chatId(chatId)
             .text(text)
             .parseMode(ParseMode.HTML)
+            .build();
+
+        try {
+            telegramClient.execute(request);
+
+            return true;
+        } catch (TelegramApiException exception) {
+            log.error(
+                "Failed to send Telegram message to chat {}",
+                chatId,
+                exception
+            );
+
+            return false;
+        }
+    }
+
+    public boolean send(Long chatId, String text, InlineKeyboardMarkup keyboard) {
+        SendMessage request = SendMessage.builder()
+            .chatId(chatId)
+            .text(text)
+            .parseMode(ParseMode.HTML)
+            .replyMarkup(keyboard)
             .build();
 
         try {

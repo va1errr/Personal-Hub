@@ -1,5 +1,6 @@
 package com.va1err.personalhub.telegram;
 
+import com.va1err.personalhub.telegram.handler.CallbackQueryHandler;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,15 +25,18 @@ public class TelegramBot implements LongPollingUpdateConsumer {
     private final String botToken;
     private final TelegramBotsLongPollingApplication application;
     private final TelegramMessageRouter messageRouter;
+    private final CallbackQueryHandler callbackQueryHandler;
 
     public TelegramBot(
         @Value("${telegram.bot.token}") String botToken,
-        TelegramMessageRouter messageRouter
+        TelegramMessageRouter messageRouter,
+        CallbackQueryHandler callbackQueryHandler
     ) {
         this.botToken = botToken;
 
         this.application = new TelegramBotsLongPollingApplication();
         this.messageRouter = messageRouter;
+        this.callbackQueryHandler = callbackQueryHandler;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -48,6 +52,11 @@ public class TelegramBot implements LongPollingUpdateConsumer {
     }
 
     private void route(Update update) {
+        if (update.hasCallbackQuery()) {
+            callbackQueryHandler.handle(update.getCallbackQuery());
+            return;
+        }
+
         if (!update.hasMessage()) {
             return;
         }

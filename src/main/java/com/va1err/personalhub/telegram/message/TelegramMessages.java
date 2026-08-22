@@ -58,4 +58,22 @@ public final class TelegramMessages {
             """;
     }
 
+    public static String changeTimezone() {
+        return """
+            Enter timezone to change to in the <i>Region/City</i> format (e.g. Europe/Moscow).
+            """;
+    }
+
+    public static String healthy() {
+        return """
+            Personal Hub is <b>UP</b>.
+            """;
+    }
+
+    public static String unhealthy() {
+        return """
+            Personal Hub is <b>DOWN</b>.
+            """;
+    }
+
 }

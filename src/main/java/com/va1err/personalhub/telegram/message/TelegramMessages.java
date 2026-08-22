@@ -52,4 +52,10 @@ public final class TelegramMessages {
             """;
     }
 
+    public static String settings() {
+        return """
+            Choose what you want to configure:
+            """;
+    }
+
 }

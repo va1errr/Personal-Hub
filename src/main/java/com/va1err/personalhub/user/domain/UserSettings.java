@@ -2,6 +2,8 @@ package com.va1err.personalhub.user.domain;
 
 import jakarta.persistence.*;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "user_settings")
 public class UserSettings {
@@ -17,5 +19,26 @@ public class UserSettings {
 
     @Column(nullable = false)
     private String timezone;
+
+    protected UserSettings() {
+
+    }
+
+    private UserSettings(User user, String timezone) {
+        this.user = user;
+        this.timezone = timezone;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public static UserSettings add(User user, String timezone) {
+        return new UserSettings(user, timezone);
+    }
 
 }

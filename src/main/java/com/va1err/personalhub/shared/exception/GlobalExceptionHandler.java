@@ -66,4 +66,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    @ExceptionHandler(DuplicateUserSettingsException.class)
+    public ResponseEntity<ApiErrorResponse> handleDuplicateUserSettings(DuplicateUserSettingsException exception) {
+        ApiErrorResponse response = new ApiErrorResponse(
+            HttpStatus.CONFLICT.value(),
+            exception.getMessage(),
+            null
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
 }

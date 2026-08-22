@@ -2,8 +2,12 @@ package com.va1err.personalhub.controller;
 
 import com.va1err.personalhub.api.user.UserController;
 import com.va1err.personalhub.shared.exception.DuplicateTgUserIdException;
+import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
+import com.va1err.personalhub.shared.exception.UserNotFoundException;
 import com.va1err.personalhub.user.application.UserService;
+import com.va1err.personalhub.user.application.UserSettingsService;
 import com.va1err.personalhub.user.domain.User;
+import com.va1err.personalhub.user.domain.UserSettings;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -26,6 +30,9 @@ class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private UserSettingsService userSettingsService;
 
     @Test
     void registerUser_shouldReturnBadRequestWhenTgUserIdIsNull() throws Exception {
@@ -87,12 +94,12 @@ class UserControllerTest {
         when(userService.registerUser(userId, null)).thenReturn(user);
 
         mockMvc.perform(post("/users")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                    "tgUserId": 12345
-                }
-                """))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "tgUserId": 12345
+                    }
+                    """))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.id").value(1))
@@ -101,6 +108,83 @@ class UserControllerTest {
             .andExpect(jsonPath("$.createdAt").value(createdAt.toString()));
 
         verify(userService).registerUser(userId, null);
+    }
+
+    @Test
+    void initializeUserSettings_shouldReturnBadRequestWhenTimezoneIsNull() throws Exception {
+        Long id = 11L;
+
+        mockMvc.perform(post("/users/" + id + "/settings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                    }
+                    """))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.message").value("Validation failed"))
+            .andExpect(jsonPath("$.errors").exists())
+            .andExpect(jsonPath("$.errors").isArray())
+            .andExpect(jsonPath("$.errors[0].field").value("timezone"))
+            .andExpect(jsonPath("$.errors[0].message").value("must not be null"));
+
+        verifyNoInteractions(userSettingsService);
+    }
+
+    @Test
+    void initializeUserSettings_shouldReturnUserNotFoundWhenUserNotRegistered() throws Exception {
+        Long id = 11L;
+        String timezone = "Europe/Moscow";
+
+        when(userSettingsService.initializeUserSettings(id, timezone)).
+            thenThrow(new UserNotFoundException(id));
+
+        mockMvc.perform(post("/users/" + id + "/settings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "timezone": "Europe/Moscow"
+                    }
+                    """))
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.message").value("User with ID=" + id + " not found"))
+            .andExpect(jsonPath("$.errors").doesNotHaveJsonPath());
+
+        verify(userSettingsService).initializeUserSettings(id, timezone);
+    }
+
+    @Test
+    void initializeUserSettings_shouldReturnCreatedUserSettings() throws Exception {
+        Long id = 11L;
+        String timezone = "Europe/Moscow";
+
+        User user = mock(User.class);
+
+        when(user.getId()).thenReturn(id);
+
+        UserSettings userSettings = mock(UserSettings.class);
+
+        when(userSettings.getUser()).thenReturn(user);
+        when(userSettings.getTimezone()).thenReturn(timezone);
+
+        when(userSettingsService.initializeUserSettings(id, timezone)).thenReturn(userSettings);
+
+        mockMvc.perform(post("/users/" + id + "/settings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "timezone": "Europe/Moscow"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.userId").value(userSettings.getUser().getId()))
+            .andExpect(jsonPath("$.timezone").value(userSettings.getTimezone()));
+
+        verify(userSettingsService).initializeUserSettings(id, timezone);
     }
 
 }

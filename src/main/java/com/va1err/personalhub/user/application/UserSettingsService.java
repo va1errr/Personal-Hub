@@ -1,5 +1,6 @@
 package com.va1err.personalhub.user.application;
 
+import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.shared.exception.UserNotFoundException;
 import com.va1err.personalhub.user.domain.User;
 import com.va1err.personalhub.user.domain.UserSettings;

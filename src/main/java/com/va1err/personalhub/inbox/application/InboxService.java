@@ -2,7 +2,7 @@ package com.va1err.personalhub.inbox.application;
 
 import com.va1err.personalhub.inbox.domain.InboxItem;
 import com.va1err.personalhub.inbox.infrastructure.InboxItemRepository;
-import com.va1err.personalhub.shared.exception.UserNotFoundException;
+import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.user.domain.User;
 import com.va1err.personalhub.user.infrastructure.UserRepository;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class InboxService {
     @Transactional
     public InboxItem addInboxItem(Long tgUserId, String content) {
         User user = userRepository.findByTgUserId(tgUserId)
-            .orElseThrow(() -> new UserNotFoundException(tgUserId));
+            .orElseThrow(() -> new TgUserNotFoundException(tgUserId));
 
         InboxItem inboxItem = InboxItem.add(
             user,

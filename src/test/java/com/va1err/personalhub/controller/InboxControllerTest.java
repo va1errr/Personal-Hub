@@ -4,7 +4,7 @@ import com.va1err.personalhub.api.inbox.InboxController;
 import com.va1err.personalhub.inbox.application.InboxService;
 import com.va1err.personalhub.inbox.domain.InboxItem;
 import com.va1err.personalhub.inbox.domain.InboxItemStatus;
-import com.va1err.personalhub.shared.exception.UserNotFoundException;
+import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.user.domain.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,7 @@ class InboxControllerTest {
         Long userId = 12345L;
 
         when(inboxService.addInboxItem(userId, "test"))
-            .thenThrow(new UserNotFoundException(userId));
+            .thenThrow(new TgUserNotFoundException(userId));
 
         mockMvc.perform(post("/inbox")
             .contentType(MediaType.APPLICATION_JSON)

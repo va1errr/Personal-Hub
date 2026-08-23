@@ -3,7 +3,6 @@ package com.va1err.personalhub.controller;
 import com.va1err.personalhub.api.user.UserController;
 import com.va1err.personalhub.shared.exception.DuplicateTgUserIdException;
 import com.va1err.personalhub.shared.exception.DuplicateUserSettingsException;
-import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.shared.exception.UserNotFoundException;
 import com.va1err.personalhub.user.application.UserService;
 import com.va1err.personalhub.user.application.UserSettingsService;

@@ -53,4 +53,13 @@ public class UserSettingsService {
         return userSettings;
     }
 
+    @Transactional(readOnly = true)
+    public UserSettings getUserSettings(Long tgUserId) {
+        User user = userRepository.findByTgUserId(tgUserId)
+            .orElseThrow(() -> new TgUserNotFoundException(tgUserId));
+
+        return userSettingsRepository.findByUserId(user.getId())
+            .orElseThrow(() -> new UserSettingsNotFoundException(user.getId()));
+    }
+
 }

@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @ConditionalOnTelegramEnabled
 @Configuration
-public class MessageConfiguration {
+public class TelegramClientConfiguration {
 
     @Bean
     public TelegramClient telegramClient(

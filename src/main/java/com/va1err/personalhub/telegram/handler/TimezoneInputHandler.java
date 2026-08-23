@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
+import java.time.DateTimeException;
 import java.time.ZoneId;
 
 @ConditionalOnTelegramEnabled
@@ -138,8 +139,12 @@ public class TimezoneInputHandler implements MessageHandler {
     }
 
     private boolean isValidTimezone(String timezone) {
-        return timezone.contains("/")
-            && ZoneId.getAvailableZoneIds().contains(timezone);
+        try {
+            ZoneId.of(timezone);
+            return true;
+        } catch (DateTimeException exception) {
+            return false;
+        }
     }
 
     private void showInvalidTimezone(

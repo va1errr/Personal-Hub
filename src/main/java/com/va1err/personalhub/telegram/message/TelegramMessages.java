@@ -1,27 +1,58 @@
 package com.va1err.personalhub.telegram.message;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public final class TelegramMessages {
 
     private TelegramMessages() {
-
     }
 
-    public static String registrationCompleted(String firstName, String lastName) {
-        return """
-            Welcome to Personal Hub, %s %s 👋
+    private static String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
 
-            You're all set. Personal Hub is your space for quickly capturing and organizing information right here in Telegram.
-
-            Send me any message to save it to your inbox.
-            """.formatted(firstName, lastName);
+        return value
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;");
     }
 
-    public static String alreadyRegistered(String firstName, String lastName) {
+    private static String displayName(
+        String firstName,
+        String lastName
+    ) {
+        return Stream.of(firstName, lastName)
+            .filter(name -> name != null && !name.isBlank())
+            .map(TelegramMessages::escapeHtml)
+            .collect(Collectors.joining(" "));
+    }
+
+    public static String registrationCompleted(
+        String firstName,
+        String lastName
+    ) {
         return """
-            Welcome back, %s %s 👋
+            Welcome to Personal Hub, %s 👋
+
+            Personal Hub is your space for quickly capturing and organizing information right here in Telegram.
+            """.formatted(
+            displayName(firstName, lastName)
+        );
+    }
+
+    public static String alreadyRegistered(
+        String firstName,
+        String lastName
+    ) {
+        return """
+            Welcome back, %s 👋
 
             Send me any message to save it to your inbox.
-            """.formatted(firstName, lastName);
+            """.formatted(
+            displayName(firstName, lastName)
+        );
     }
 
     public static String systemUnavailable() {
@@ -35,7 +66,7 @@ public final class TelegramMessages {
     public static String unknownCommand(String command) {
         return """
             Sorry, I don't recognize command %s.
-            """.formatted(command);
+            """.formatted(escapeHtml(command));
     }
 
     public static String inboxItemSaved(String content) {
@@ -43,7 +74,7 @@ public final class TelegramMessages {
             Saved to your inbox ✅:
 
             <i>%s</i>
-            """.formatted(content);
+            """.formatted(escapeHtml(content));
     }
 
     public static String registrationRequired() {
@@ -58,9 +89,67 @@ public final class TelegramMessages {
             """;
     }
 
-    public static String changeTimezone() {
+    public static String initializeTimezone() {
         return """
-            Enter timezone to change to in the <i>Region/City</i> format (e.g. Europe/Moscow).
+            Enter timezone to set to in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
+            You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+            """;
+    }
+
+    public static String changeTimezone(String currentZone) {
+        if (currentZone == null) {
+            return """
+                Enter timezone to change to in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
+                You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+                """;
+        }
+
+        return """
+                Your current timezone: <code>%s</code>.
+
+                Enter timezone to change to in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
+                You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+                """.formatted(escapeHtml(currentZone));
+    }
+
+    public static String invalidTimezone(String timezone) {
+        if (timezone == null) {
+            return """
+                Invalid timezone.
+
+                Please write in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
+                You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+                """;
+        }
+
+        return """
+            Invalid timezone.
+            Sorry, I do not recognize <b>%s</b>.
+
+            Please write in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
+            You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+            """.formatted(escapeHtml(timezone));
+    }
+
+    public static String timezoneSuccessfullyInitialized(String timezone) {
+        return """
+            Successfully set your timezone to <code>%s</code>.
+
+            You're all set. Send me any message to save it to your inbox.
+            """.formatted(escapeHtml(timezone));
+    }
+
+    public static String timezoneSuccessfullyUpdated(String timezone) {
+        return """
+            Successfully set your timezone to <code>%s</code>.
+            """.formatted(escapeHtml(timezone));
+    }
+
+    public static String timezoneAlreadyInitialized() {
+        return """
+            Your timezone is already set.
+
+            Send me any message to save it to your inbox.
             """;
     }
 

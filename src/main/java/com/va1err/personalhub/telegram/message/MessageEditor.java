@@ -31,23 +31,15 @@ public class MessageEditor {
             .parseMode(ParseMode.HTML)
             .build();
 
-        try {
-            telegramClient.execute(request);
-
-            return true;
-        } catch (TelegramApiException exception) {
-            log.error(
-                "Failed to edit Telegram message {} in chat {}",
-                messageId,
-                chatId,
-                exception
-            );
-
-            return false;
-        }
+        return execute(request, chatId, messageId);
     }
 
-    public boolean edit(Long chatId, Integer messageId, String text, InlineKeyboardMarkup keyboard) {
+    public boolean edit(
+        Long chatId,
+        Integer messageId,
+        String text,
+        InlineKeyboardMarkup keyboard
+    ) {
         EditMessageText request = EditMessageText.builder()
             .chatId(chatId)
             .messageId(messageId)
@@ -56,9 +48,16 @@ public class MessageEditor {
             .replyMarkup(keyboard)
             .build();
 
+        return execute(request, chatId, messageId);
+    }
+
+    private boolean execute(
+        EditMessageText request,
+        Long chatId,
+        Integer messageId
+    ) {
         try {
             telegramClient.execute(request);
-
             return true;
         } catch (TelegramApiException exception) {
             log.error(

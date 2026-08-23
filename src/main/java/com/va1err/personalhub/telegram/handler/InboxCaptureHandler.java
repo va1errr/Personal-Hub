@@ -1,18 +1,14 @@
 package com.va1err.personalhub.telegram.handler;
 
-import com.va1err.personalhub.api.inbox.AddInboxItemRequest;
+import com.va1err.personalhub.inbox.application.InboxService;
+import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
-import com.va1err.personalhub.telegram.message.MessageDeleter;
-import com.va1err.personalhub.telegram.message.MessageSender;
+import com.va1err.personalhub.telegram.message.MessageResponder;
 import com.va1err.personalhub.telegram.message.TelegramMessages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
-import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
 @ConditionalOnTelegramEnabled
 @Component
@@ -21,22 +17,15 @@ public class InboxCaptureHandler implements MessageHandler {
     private static final Logger log =
         LoggerFactory.getLogger(InboxCaptureHandler.class);
 
-    private final RestClient client;
-    private final MessageSender messageSender;
-    private final MessageDeleter messageDeleter;
+    private final InboxService inboxService;
+    private final MessageResponder messageResponder;
 
     public InboxCaptureHandler(
-        @Value("${api.base-url}") String baseUrl,
-        RestClient.Builder restClientBuilder,
-        MessageSender messageSender,
-        MessageDeleter messageDeleter
+        InboxService inboxService,
+        MessageResponder messageResponder
     ) {
-        this.client = restClientBuilder
-            .baseUrl(baseUrl)
-            .build();
-
-        this.messageSender = messageSender;
-        this.messageDeleter = messageDeleter;
+        this.inboxService = inboxService;
+        this.messageResponder = messageResponder;
     }
 
     @Override
@@ -44,42 +33,26 @@ public class InboxCaptureHandler implements MessageHandler {
         Long tgUserId = message.getFrom().getId();
         String content = message.getText();
 
-        AddInboxItemRequest request = new AddInboxItemRequest(tgUserId, content);
+        String responseText = capture(tgUserId, content);
 
-        String responseText;
+        messageResponder.respond(message, responseText);
+    }
 
+    private String capture(Long tgUserId, String content) {
         try {
-            responseText = client.post()
-                .uri("/inbox")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(request)
-                .exchange((httpRequest, httpResponse) -> {
-                    int status = httpResponse.getStatusCode().value();
+            inboxService.addInboxItem(tgUserId, content);
 
-                    if (status >= 200 && status < 300) {
-                        return TelegramMessages.inboxItemSaved(content);
-                    }
-
-                    if (status == 404) {
-                        return TelegramMessages.registrationRequired();
-                    }
-
-                    throw new IllegalStateException("API return HTTP " + status);
-                });
+            return TelegramMessages.inboxItemSaved(content);
+        } catch (TgUserNotFoundException exception) {
+            return TelegramMessages.registrationRequired();
         } catch (RuntimeException exception) {
             log.error(
-                "Inbox capturing API request failed for Telegram user {}",
+                "Inbox capture failed for Telegram user {}",
                 tgUserId,
                 exception
             );
 
-            responseText = TelegramMessages.systemUnavailable();
-        }
-
-        boolean responseSent = messageSender.send(message.getChatId(), responseText);
-
-        if (responseSent) {
-            messageDeleter.delete(message.getChatId(), message.getMessageId());
+            return TelegramMessages.systemUnavailable();
         }
     }
 

@@ -1,17 +1,18 @@
 package com.va1err.personalhub.telegram.command;
 
-import com.va1err.personalhub.api.user.RegisterUserRequest;
+import com.va1err.personalhub.shared.exception.DuplicateTgUserIdException;
 import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
-import com.va1err.personalhub.telegram.message.MessageDeleter;
+import com.va1err.personalhub.telegram.message.MessageResponder;
 import com.va1err.personalhub.telegram.message.MessageSender;
 import com.va1err.personalhub.telegram.message.TelegramMessages;
+import com.va1err.personalhub.telegram.state.TimezoneInputState;
+import com.va1err.personalhub.user.application.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+
+import java.util.Optional;
 
 @ConditionalOnTelegramEnabled
 @Component
@@ -20,22 +21,21 @@ public class StartCommand implements Command {
     private static final Logger log =
         LoggerFactory.getLogger(StartCommand.class);
 
-    private final RestClient client;
+    private final UserService userService;
     private final MessageSender messageSender;
-    private final MessageDeleter messageDeleter;
+    private final MessageResponder messageResponder;
+    private final TimezoneInputState timezoneInputState;
 
     public StartCommand(
-        RestClient.Builder restClientBuilder,
+        UserService userService,
         MessageSender messageSender,
-        MessageDeleter messageDeleter,
-        @Value("${api.base-url}") String baseUrl
+        MessageResponder messageResponder,
+        TimezoneInputState timezoneInputState
     ) {
-        this.client = restClientBuilder
-            .baseUrl(baseUrl)
-            .build();
-
+        this.userService = userService;
         this.messageSender = messageSender;
-        this.messageDeleter = messageDeleter;
+        this.messageResponder = messageResponder;
+        this.timezoneInputState = timezoneInputState;
     }
 
     @Override
@@ -46,54 +46,73 @@ public class StartCommand implements Command {
     @Override
     public void execute(Message message) {
         Long tgUserId = message.getFrom().getId();
-        String tgUsername = message.getFrom().getUserName();
+        Long chatId = message.getChatId();
 
-        RegisterUserRequest request = new RegisterUserRequest(
-            tgUserId,
-            tgUsername
+        RegistrationResult result = register(message);
+
+        Optional<Message> responseMessage = messageResponder.respond(
+            message,
+            result.responseText()
         );
 
-        String responseText;
+        if (responseMessage.isEmpty() || !result.newlyRegistered()) {
+            return;
+        }
+
+        Optional<Message> timezonePrompt =
+            messageSender.send(chatId, TelegramMessages.initializeTimezone());
+        timezonePrompt.ifPresent(prompt ->
+            timezoneInputState.begin(
+                tgUserId,
+                chatId,
+                prompt.getMessageId(),
+                TimezoneInputState.Operation.INITIALIZE
+            )
+        );
+    }
+
+    private RegistrationResult register(Message message) {
+        Long tgUserId = message.getFrom().getId();
+        String tgUsername = message.getFrom().getUserName();
+        String firstName = message.getFrom().getFirstName();
+        String lastName = message.getFrom().getLastName();
 
         try {
-            responseText = client.post()
-                .uri("/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(request)
-                .exchange((httpRequest, httpResponse) -> {
-                    int status = httpResponse.getStatusCode().value();
+            userService.registerUser(tgUserId, tgUsername);
 
-                    if (status >= 200 && status < 300) {
-                        return TelegramMessages.registrationCompleted(
-                            message.getFrom().getFirstName(),
-                            message.getFrom().getLastName()
-                        );
-                    }
-
-                    if (status == 409) {
-                        return TelegramMessages.alreadyRegistered(
-                            message.getFrom().getFirstName(),
-                            message.getFrom().getLastName()
-                        );
-                    }
-
-                    throw new IllegalStateException("API return HTTP " + status);
-                });
+            return new RegistrationResult(
+                true,
+                TelegramMessages.registrationCompleted(
+                    firstName,
+                    lastName
+                )
+            );
+        } catch (DuplicateTgUserIdException exception) {
+            return new RegistrationResult(
+                false,
+                TelegramMessages.alreadyRegistered(
+                    firstName,
+                    lastName
+                )
+            );
         } catch (RuntimeException exception) {
             log.error(
-                "Registration API request failed for Telegram user {}",
+                "Registration failed for Telegram user {}",
                 tgUserId,
                 exception
             );
 
-            responseText = TelegramMessages.systemUnavailable();
+            return new RegistrationResult(
+                false,
+                TelegramMessages.systemUnavailable()
+            );
         }
+    }
 
-        boolean responseSent = messageSender.send(message.getChatId(), responseText);
-
-        if (responseSent) {
-            messageDeleter.delete(message.getChatId(), message.getMessageId());
-        }
+    private record RegistrationResult(
+        boolean newlyRegistered,
+        String responseText
+    ) {
     }
 
 }

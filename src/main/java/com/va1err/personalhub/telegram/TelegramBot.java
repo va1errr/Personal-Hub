@@ -1,7 +1,6 @@
 package com.va1err.personalhub.telegram;
 
-import com.va1err.personalhub.telegram.handler.CallbackQueryHandler;
-import jakarta.annotation.PreDestroy;
+import com.va1err.personalhub.telegram.callback.handler.CallbackQueryHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,12 +28,12 @@ public class TelegramBot implements LongPollingUpdateConsumer {
 
     public TelegramBot(
         @Value("${telegram.bot.token}") String botToken,
+        TelegramBotsLongPollingApplication application,
         TelegramMessageRouter messageRouter,
         CallbackQueryHandler callbackQueryHandler
     ) {
         this.botToken = botToken;
-
-        this.application = new TelegramBotsLongPollingApplication();
+        this.application = application;
         this.messageRouter = messageRouter;
         this.callbackQueryHandler = callbackQueryHandler;
     }
@@ -62,15 +61,6 @@ public class TelegramBot implements LongPollingUpdateConsumer {
         }
 
         messageRouter.route(update.getMessage());
-    }
-
-    @PreDestroy
-    public void stop() {
-        try {
-            application.close();
-        } catch (Exception exception) {
-            log.error("Failed to stop Telegram bot", exception);
-        }
     }
 
 }

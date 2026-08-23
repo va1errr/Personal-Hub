@@ -1,59 +1,67 @@
-package com.va1err.personalhub.telegram.command;
+package com.va1err.personalhub.telegram.callback.handler;
 
 import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
-import com.va1err.personalhub.telegram.message.MessageResponder;
+import com.va1err.personalhub.telegram.callback.SettingsCallbackAction;
+import com.va1err.personalhub.telegram.message.MessageEditor;
 import com.va1err.personalhub.telegram.message.TelegramMessages;
+import com.va1err.personalhub.telegram.state.TimezoneInputState;
 import com.va1err.personalhub.telegram.ui.SettingsKeyboardFactory;
 import com.va1err.personalhub.user.application.UserSettingsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 @ConditionalOnTelegramEnabled
 @Component
-public class SettingsCommand implements Command {
+public class BackCallbackHandler implements SettingsCallbackHandler {
 
     private static final Logger log =
-        LoggerFactory.getLogger(SettingsCommand.class);
+        LoggerFactory.getLogger(BackCallbackHandler.class);
 
-    private final MessageResponder messageResponder;
+    private final MessageEditor messageEditor;
+    private final TimezoneInputState timezoneInputState;
     private final SettingsKeyboardFactory settingsKeyboardFactory;
     private final UserSettingsService userSettingsService;
 
-    public SettingsCommand(
-        MessageResponder messageResponder,
+    public BackCallbackHandler(
+        MessageEditor messageEditor,
+        TimezoneInputState timezoneInputState,
         SettingsKeyboardFactory settingsKeyboardFactory,
         UserSettingsService userSettingsService
     ) {
-        this.messageResponder = messageResponder;
+        this.messageEditor = messageEditor;
+        this.timezoneInputState = timezoneInputState;
         this.settingsKeyboardFactory = settingsKeyboardFactory;
         this.userSettingsService = userSettingsService;
     }
 
     @Override
-    public String name() {
-        return "/settings";
+    public SettingsCallbackAction action() {
+        return SettingsCallbackAction.BACK;
     }
 
     @Override
-    public void execute(Message message) {
+    public void handle(
+        SettingsCallbackContext context) {
         String currentTimezone = null;
         try {
             currentTimezone =
-                userSettingsService.getUserSettings(message.getFrom().getId()).getTimezone();
+                userSettingsService.getUserSettings(context.tgUserId()).getTimezone();
         } catch (RuntimeException e) {
             log.error(
                 "Failed to get user settings for Telegram user {}",
-                message.getFrom().getId(),
+                context.tgUserId(),
                 e
             );
         }
-        messageResponder.respond(
-            message,
+
+        timezoneInputState.clear(context.tgUserId());
+
+        messageEditor.edit(
+            context.chatId(),
+            context.messageId(),
             TelegramMessages.settings(),
             settingsKeyboardFactory.main(currentTimezone)
         );
     }
-
 }

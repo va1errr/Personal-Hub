@@ -37,6 +37,13 @@ public class UserSettings {
         return timezone;
     }
 
+    public void changeTimezone(String timezone) {
+        this.timezone = Objects.requireNonNull(
+            timezone,
+            "Timezone must not be null"
+        );
+    }
+
     public static UserSettings add(User user, String timezone) {
         return new UserSettings(user, timezone);
     }

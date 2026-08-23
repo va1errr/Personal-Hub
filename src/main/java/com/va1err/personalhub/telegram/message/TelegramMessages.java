@@ -175,9 +175,9 @@ public final class TelegramMessages {
         return """
             📥 Inbox item
 
-            %s
+            <i>%s</i>
 
-            Added: %s
+            Added: <b>%s</b>
             """.formatted(escapeHtml(content), escapeHtml(createdAt));
     }
 

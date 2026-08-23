@@ -18,11 +18,13 @@ public class CallbackQueryHandler {
     private final CallbackQueryAcknowledger callbackQueryAcknowledger;
     private final Map<SettingsCallbackAction, SettingsCallbackHandler> handlers;
     private final ActiveInboxNavigationCallbackHandler activeInboxNavigationCallbackHandler;
+    private final InboxItemCallbackHandler inboxItemCallbackHandler;
 
     public CallbackQueryHandler(
         CallbackQueryAcknowledger callbackQueryAcknowledger,
         List<SettingsCallbackHandler> handlers,
-        ActiveInboxNavigationCallbackHandler activeInboxNavigationCallbackHandler
+        ActiveInboxNavigationCallbackHandler activeInboxNavigationCallbackHandler,
+        InboxItemCallbackHandler inboxItemCallbackHandler
     ) {
         this.callbackQueryAcknowledger = callbackQueryAcknowledger;
 
@@ -32,6 +34,7 @@ public class CallbackQueryHandler {
                 Function.identity()
             ));
         this.activeInboxNavigationCallbackHandler = activeInboxNavigationCallbackHandler;
+        this.inboxItemCallbackHandler = inboxItemCallbackHandler;
     }
 
     public void handle(CallbackQuery callbackQuery) {
@@ -57,6 +60,9 @@ public class CallbackQueryHandler {
         }
         if (callbackData.startsWith("inbox:page:")) {
             activeInboxNavigationCallbackHandler.handle(tgUserId, chatId, messageId, callbackData);
+        }
+        if (callbackData.startsWith("inbox:item:")) {
+            inboxItemCallbackHandler.handle(tgUserId, chatId, messageId, callbackData);
         }
     }
 

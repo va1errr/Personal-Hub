@@ -6,30 +6,37 @@ import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
 import com.va1err.personalhub.telegram.message.MessageEditor;
 import com.va1err.personalhub.telegram.message.TelegramMessages;
 import com.va1err.personalhub.telegram.ui.ActiveInboxItemsKeyboardFactory;
+import com.va1err.personalhub.user.application.UserSettingsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
+
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @ConditionalOnTelegramEnabled
 @Component
-public class ActiveInboxNavigationCallbackHandler {
+public class InboxItemCallbackHandler {
 
     private static final Logger log =
-        LoggerFactory.getLogger(ActiveInboxNavigationCallbackHandler.class);
+        LoggerFactory.getLogger(InboxItemCallbackHandler.class);
 
     private final MessageEditor messageEditor;
     private final ActiveInboxItemsKeyboardFactory activeInboxItemsKeyboardFactory;
     private final InboxService inboxService;
+    private final UserSettingsService userSettingsService;
 
-    public ActiveInboxNavigationCallbackHandler(
+    public InboxItemCallbackHandler(
         MessageEditor messageEditor,
         ActiveInboxItemsKeyboardFactory activeInboxItemsKeyboardFactory,
-        InboxService inboxService
+        InboxService inboxService,
+        UserSettingsService userSettingsService
     ) {
         this.messageEditor = messageEditor;
         this.activeInboxItemsKeyboardFactory = activeInboxItemsKeyboardFactory;
         this.inboxService = inboxService;
+        this.userSettingsService = userSettingsService;
     }
 
     public void handle(
@@ -40,27 +47,41 @@ public class ActiveInboxNavigationCallbackHandler {
     ) {
         String[] parts = callbackData.split(":");
 
-        if (parts.length != 3
+        if (parts.length != 5
             || !parts[0].equals("inbox")
-            || !parts[1].equals("page")) {
+            || !parts[1].equals("item")
+            || !parts[3].equals("page")) {
 
             log.warn("Invalid inbox callback: {}", callbackData);
             return;
         }
 
-        int page = Integer.parseInt(parts[2]);
-        Slice<InboxItem> activeInbox;
+        int page = Integer.parseInt(parts[4]);
+        Long id = Long.parseLong(parts[2]);
+
+        InboxItem inboxItem;
 
         try {
-            activeInbox =
-                inboxService.getActiveInbox(
-                    tgUserId,
-                    page,
-                    5
-                );
+            inboxItem = inboxService.getInboxItem(
+                id,
+                tgUserId
+            );
         } catch (RuntimeException e) {
             log.error(
-                "Failed to get active inbox for Telegram user {}",
+                "Failed to get inbox item {} for Telegram user {}",
+                id,
+                tgUserId,
+                e
+            );
+            return;
+        }
+
+        String timezone;
+        try {
+            timezone = userSettingsService.getUserSettings(tgUserId).getTimezone();
+        } catch (RuntimeException e) {
+            log.error(
+                "Failed to get timezone for Telegram user {}",
                 tgUserId,
                 e
             );
@@ -70,11 +91,16 @@ public class ActiveInboxNavigationCallbackHandler {
         messageEditor.edit(
             chatId,
             messageId,
-            TelegramMessages.activeInbox(),
-            activeInboxItemsKeyboardFactory.main(
-                activeInbox,
-                page
-            )
+            TelegramMessages.inboxItem(
+                inboxItem.getContent(),
+                inboxItem.getCreatedAt()
+                    .atZone(ZoneId.of(timezone))
+                    .format(DateTimeFormatter.ofPattern(
+                        "d MMM uuuu, HH:mm",
+                        Locale.ENGLISH
+                    ))
+            ),
+            activeInboxItemsKeyboardFactory.back(page)
         );
     }
 

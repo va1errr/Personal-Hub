@@ -171,4 +171,14 @@ public final class TelegramMessages {
             """;
     }
 
+    public static String inboxItem(String content, String createdAt) {
+        return """
+            📥 Inbox item
+
+            %s
+
+            Added: %s
+            """.formatted(escapeHtml(content), escapeHtml(createdAt));
+    }
+
 }

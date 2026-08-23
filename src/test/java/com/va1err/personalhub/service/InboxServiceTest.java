@@ -14,7 +14,9 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,6 +24,8 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class InboxServiceTest {
+
+    private static final Long TEST_TG_USER_ID = 12345L;
 
     @InjectMocks
     private InboxService inboxService;
@@ -37,26 +41,23 @@ class InboxServiceTest {
 
     @Test
     void addInboxItem_shouldThrowExceptionWhenUserNotFound() {
-        Long userId = 12345L;
-
-        when(userRepository.findByTgUserId(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByTgUserId(TEST_TG_USER_ID)).thenReturn(Optional.empty());
 
         assertThrows(
             TgUserNotFoundException.class,
-            () -> inboxService.addInboxItem(userId, "test")
+            () -> inboxService.addInboxItem(TEST_TG_USER_ID, "test")
         );
-        verify(userRepository).findByTgUserId(userId);
+        verify(userRepository).findByTgUserId(TEST_TG_USER_ID);
         verifyNoInteractions(inboxItemRepository);
     }
 
     @Test
     void addInboxItem_shouldReturnAddedInboxItem() {
-        Long userId = 12345L;
-        User user = User.register(userId, null);
+        User user = User.register(TEST_TG_USER_ID, null);
 
-        when(userRepository.findByTgUserId(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByTgUserId(TEST_TG_USER_ID)).thenReturn(Optional.of(user));
 
-        inboxService.addInboxItem(userId, "test");
+        inboxService.addInboxItem(TEST_TG_USER_ID, "test");
 
         verify(inboxItemRepository).save(inboxItemCaptor.capture());
 
@@ -65,6 +66,45 @@ class InboxServiceTest {
         assertSame(user, savedInboxItem.getUser());
         assertEquals("test", savedInboxItem.getContent());
         assertEquals(InboxItemStatus.ACTIVE, savedInboxItem.getStatus());
+    }
+
+    @Test
+    void getActiveInbox_shouldConstructCorrectPageRequest() {
+        User user = User.register(TEST_TG_USER_ID, null);
+        InboxItem inboxItem = InboxItem.add(user, "test");
+
+        Slice<InboxItem> expected = new SliceImpl<>(List.of(inboxItem));
+
+        when(inboxItemRepository.findByUser_tgUserIdAndStatus(
+            eq(TEST_TG_USER_ID),
+            eq(InboxItemStatus.ACTIVE),
+            any(Pageable.class)
+            )).thenReturn(expected);
+
+        Slice<InboxItem> actual = inboxService.getActiveInbox(
+            TEST_TG_USER_ID,
+            2,
+            100
+        );
+
+        ArgumentCaptor<Pageable> pageableCaptor =
+            ArgumentCaptor.forClass(Pageable.class);
+
+        verify(inboxItemRepository).findByUser_tgUserIdAndStatus(
+            eq(TEST_TG_USER_ID),
+            eq(InboxItemStatus.ACTIVE),
+            pageableCaptor.capture()
+        );
+
+        Pageable pageable = pageableCaptor.getValue();
+
+        assertSame(expected, actual);
+        assertEquals(2, pageable.getPageNumber());
+        assertEquals(20, pageable.getPageSize());
+        assertEquals(Sort.by(
+            Sort.Order.desc("createdAt"),
+            Sort.Order.desc("id")
+        ), pageable.getSort());
     }
 
 }

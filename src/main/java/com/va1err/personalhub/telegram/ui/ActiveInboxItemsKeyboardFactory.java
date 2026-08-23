@@ -21,7 +21,7 @@ public class ActiveInboxItemsKeyboardFactory {
             .map(inboxItem -> {
                 var button = InlineKeyboardButton.builder()
                     .text(limitContent(inboxItem.getContent(), 40))
-                    .callbackData("inbox:item:" + inboxItem.getId())
+                    .callbackData("inbox:item:" + inboxItem.getId() + ":page:" + page)
                     .build();
 
                 return new InlineKeyboardRow(button);
@@ -50,10 +50,23 @@ public class ActiveInboxItemsKeyboardFactory {
             navigationRow.add(nextButton);
         }
 
-        rows.add(navigationRow);
+        if (!navigationRow.isEmpty()){
+            rows.add(navigationRow);
+        }
 
         return InlineKeyboardMarkup.builder()
             .keyboard(rows)
+            .build();
+    }
+
+    public InlineKeyboardMarkup back(int page) {
+        var backButton = InlineKeyboardButton.builder()
+            .text("← Back")
+            .callbackData("inbox:page:" + page)
+            .build();
+
+        return InlineKeyboardMarkup.builder()
+            .keyboard(List.of(new InlineKeyboardRow(backButton)))
             .build();
     }
 

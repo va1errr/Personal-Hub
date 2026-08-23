@@ -47,7 +47,17 @@ public class TelegramBot implements LongPollingUpdateConsumer {
 
     @Override
     public void consume(List<Update> updates) {
-        updates.forEach(this::route);
+        for (Update update : updates) {
+            try {
+                route(update);
+            } catch (RuntimeException exception) {
+                log.error(
+                    "Failed to process Telegram update {}",
+                    update.getUpdateId(),
+                    exception
+                );
+            }
+        }
     }
 
     private void route(Update update) {

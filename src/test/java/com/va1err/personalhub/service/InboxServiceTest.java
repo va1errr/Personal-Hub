@@ -4,6 +4,7 @@ import com.va1err.personalhub.inbox.application.InboxService;
 import com.va1err.personalhub.inbox.domain.InboxItem;
 import com.va1err.personalhub.inbox.domain.InboxItemStatus;
 import com.va1err.personalhub.inbox.infrastructure.InboxItemRepository;
+import com.va1err.personalhub.shared.exception.InboxItemNotFoundException;
 import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.user.domain.User;
 import com.va1err.personalhub.user.infrastructure.UserRepository;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.*;
 class InboxServiceTest {
 
     private static final Long TEST_TG_USER_ID = 12345L;
+    private static final Long TEST_ID = 11L;
 
     @InjectMocks
     private InboxService inboxService;
@@ -105,6 +107,35 @@ class InboxServiceTest {
             Sort.Order.desc("createdAt"),
             Sort.Order.desc("id")
         ), pageable.getSort());
+    }
+
+    @Test
+    void getInboxItem_shouldRejectInvalidId() {
+        when(inboxItemRepository.findByIdAndUser_tgUserId(TEST_ID, TEST_TG_USER_ID))
+            .thenReturn(Optional.empty());
+
+        assertThrows(
+            InboxItemNotFoundException.class,
+            () -> inboxService.getInboxItem(TEST_ID, TEST_TG_USER_ID)
+        );
+        verify(inboxItemRepository).findByIdAndUser_tgUserId(TEST_ID, TEST_TG_USER_ID);
+    }
+
+    @Test
+    void getInboxItem_shouldReturnInboxItem() {
+        User user = mock(User.class);
+
+        when(user.getTgUserId()).thenReturn(TEST_TG_USER_ID);
+
+        InboxItem expected = InboxItem.add(user, "test");
+
+        when(inboxItemRepository.findByIdAndUser_tgUserId(TEST_ID, TEST_TG_USER_ID))
+            .thenReturn(Optional.of(expected));
+
+        InboxItem actual = inboxService.getInboxItem(TEST_ID, TEST_TG_USER_ID);
+
+        assertEquals(expected.getUser().getTgUserId(), actual.getUser().getTgUserId());
+        assertEquals(expected.getContent(), actual.getContent());
     }
 
 }

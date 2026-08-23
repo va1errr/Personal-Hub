@@ -3,6 +3,7 @@ package com.va1err.personalhub.inbox.application;
 import com.va1err.personalhub.inbox.domain.InboxItem;
 import com.va1err.personalhub.inbox.domain.InboxItemStatus;
 import com.va1err.personalhub.inbox.infrastructure.InboxItemRepository;
+import com.va1err.personalhub.shared.exception.InboxItemNotFoundException;
 import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.user.domain.User;
 import com.va1err.personalhub.user.infrastructure.UserRepository;
@@ -60,6 +61,15 @@ public class InboxService {
             InboxItemStatus.ACTIVE,
             pageable
         );
+    }
+
+    @Transactional(readOnly = true)
+    public InboxItem getInboxItem(Long id, Long tgUserId) {
+        InboxItem inboxItem =
+            inboxItemRepository.findByIdAndUser_tgUserId(id, tgUserId)
+                .orElseThrow(() -> new InboxItemNotFoundException(id));
+
+        return inboxItem;
     }
 
 }

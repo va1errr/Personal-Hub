@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface InboxItemRepository extends JpaRepository<InboxItem, Long> {
 
     Slice<InboxItem> findByUser_tgUserIdAndStatus(
@@ -13,5 +15,7 @@ public interface InboxItemRepository extends JpaRepository<InboxItem, Long> {
         InboxItemStatus status,
         Pageable pageable
     );
+
+    Optional<InboxItem> findByIdAndUser_tgUserId(Long id, Long tgUserId);
 
 }

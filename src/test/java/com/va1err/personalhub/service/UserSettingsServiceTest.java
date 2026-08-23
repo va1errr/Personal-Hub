@@ -1,6 +1,7 @@
 package com.va1err.personalhub.service;
 
 import com.va1err.personalhub.shared.exception.DuplicateUserSettingsException;
+import com.va1err.personalhub.shared.exception.TgUserNotFoundException;
 import com.va1err.personalhub.shared.exception.UserNotFoundException;
 import com.va1err.personalhub.user.application.UserSettingsService;
 import com.va1err.personalhub.user.domain.User;
@@ -38,56 +39,58 @@ class UserSettingsServiceTest {
 
     @Test
     void initializeUserSettings_shouldRejectUnregisteredUsers() {
-        Long id = 11L;
+        Long tgUserId = 12345L;
         String timezone = "Europe/Moscow";
 
-        when(userRepository.findById(id)).thenReturn(Optional.empty());
+        when(userRepository.findByTgUserId(tgUserId)).thenReturn(Optional.empty());
 
         assertThrows(
-            UserNotFoundException.class,
-            () -> userSettingsService.initializeUserSettings(id, timezone)
+            TgUserNotFoundException.class,
+            () -> userSettingsService.initializeUserSettings(tgUserId, timezone)
         );
-        verify(userRepository).findById(id);
+        verify(userRepository).findByTgUserId(tgUserId);
         verifyNoInteractions(userSettingsRepository);
     }
 
     @Test
     void initializeUserSettings_shouldRejectDuplicates() {
-        Long id = 11L;
+        Long tgUserId = 12345L;
         String timezone = "Europe/Moscow";
 
         User user = mock(User.class);
 
-        when(userRepository.findById(id)).thenReturn(Optional.of(user));
-        when(userSettingsRepository.existsByUserId(id)).thenReturn(true);
+        when(user.getId()).thenReturn(11L);
+
+        when(userRepository.findByTgUserId(tgUserId)).thenReturn(Optional.of(user));
+        when(userSettingsRepository.existsByUserId(user.getId())).thenReturn(true);
 
         assertThrows(
             DuplicateUserSettingsException.class,
-            () -> userSettingsService.initializeUserSettings(id, timezone)
+            () -> userSettingsService.initializeUserSettings(tgUserId, timezone)
         );
-        verify(userRepository).findById(id);
-        verify(userSettingsRepository).existsByUserId(id);
+        verify(userRepository).findByTgUserId(tgUserId);
+        verify(userSettingsRepository).existsByUserId(user.getId());
         verifyNoMoreInteractions(userSettingsRepository);
     }
 
     @Test
     void initializeUserSettings_shouldReturnCreatedUserSettings() {
-        Long id = 11L;
+        Long tgUserId = 12345L;
         String timezone = "Europe/Moscow";
 
         User user = mock(User.class);
 
-        when(user.getId()).thenReturn(id);
+        when(user.getTgUserId()).thenReturn(tgUserId);
 
-        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(userRepository.findByTgUserId(tgUserId)).thenReturn(Optional.of(user));
 
-        userSettingsService.initializeUserSettings(id, timezone);
+        userSettingsService.initializeUserSettings(tgUserId, timezone);
 
         verify(userSettingsRepository).save(userSettingsCaptor.capture());
 
         UserSettings savedUserSettings = userSettingsCaptor.getValue();
 
-        assertEquals(id, savedUserSettings.getUser().getId());
+        assertEquals(tgUserId, savedUserSettings.getUser().getTgUserId());
         assertEquals(timezone, savedUserSettings.getTimezone());
     }
 

@@ -92,7 +92,7 @@ public final class TelegramMessages {
     public static String initializeTimezone() {
         return """
             Enter timezone to set to in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
-            You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+            You can also use a fixed UTC offset, such as <code>GMT+3</code> or <code>UTC+03:00</code>.
             """;
     }
 
@@ -100,7 +100,7 @@ public final class TelegramMessages {
         if (currentZone == null) {
             return """
                 Enter timezone to change to in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
-                You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+                You can also use a fixed UTC offset, such as <code>GMT+3</code> or <code>UTC+03:00</code>.
                 """;
         }
 
@@ -108,7 +108,7 @@ public final class TelegramMessages {
             Your current timezone: <code>%s</code>.
 
             Enter timezone to change to in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
-            You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+            You can also use a fixed UTC offset, such as <code>GMT+3</code> or <code>UTC+03:00</code>.
             """.formatted(escapeHtml(currentZone));
     }
 
@@ -118,7 +118,7 @@ public final class TelegramMessages {
                 Invalid timezone.
 
                 Please write in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
-                You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+                You can also use a fixed UTC offset, such as <code>GMT+3</code> or <code>UTC+03:00</code>.
                 """;
         }
 
@@ -127,7 +127,7 @@ public final class TelegramMessages {
             Sorry, I do not recognize <b>%s</b>.
 
             Please write in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
-            You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+            You can also use a fixed UTC offset, such as <code>GMT+3</code> or <code>UTC+03:00</code>.
             """.formatted(escapeHtml(timezone));
     }
 

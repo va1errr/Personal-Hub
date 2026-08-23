@@ -105,11 +105,11 @@ public final class TelegramMessages {
         }
 
         return """
-                Your current timezone: <code>%s</code>.
+            Your current timezone: <code>%s</code>.
 
-                Enter timezone to change to in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
-                You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
-                """.formatted(escapeHtml(currentZone));
+            Enter timezone to change to in the <i>Region/City</i> format (e.g. <code>Europe/Moscow</code>).
+            You can also use a fixed UTC offset, such as <code>Etc/GMT+3</code> or <code>Etc/GMT-4</code>.
+            """.formatted(escapeHtml(currentZone));
     }
 
     public static String invalidTimezone(String timezone) {
@@ -162,6 +162,12 @@ public final class TelegramMessages {
     public static String unhealthy() {
         return """
             Personal Hub is <b>DOWN</b>.
+            """;
+    }
+
+    public static String activeInbox() {
+        return """
+            Here is your active inbox items:
             """;
     }
 

@@ -13,17 +13,17 @@ import org.springframework.stereotype.Component;
 
 @ConditionalOnTelegramEnabled
 @Component
-public class BackCallbackHandler implements SettingsCallbackHandler {
+public class SettingsBackCallbackHandler implements SettingsCallbackHandler {
 
     private static final Logger log =
-        LoggerFactory.getLogger(BackCallbackHandler.class);
+        LoggerFactory.getLogger(SettingsBackCallbackHandler.class);
 
     private final MessageEditor messageEditor;
     private final TimezoneInputState timezoneInputState;
     private final SettingsKeyboardFactory settingsKeyboardFactory;
     private final UserSettingsService userSettingsService;
 
-    public BackCallbackHandler(
+    public SettingsBackCallbackHandler(
         MessageEditor messageEditor,
         TimezoneInputState timezoneInputState,
         SettingsKeyboardFactory settingsKeyboardFactory,

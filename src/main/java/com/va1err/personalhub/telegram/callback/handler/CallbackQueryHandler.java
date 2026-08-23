@@ -17,10 +17,12 @@ public class CallbackQueryHandler {
 
     private final CallbackQueryAcknowledger callbackQueryAcknowledger;
     private final Map<SettingsCallbackAction, SettingsCallbackHandler> handlers;
+    private final ActiveInboxNavigationCallbackHandler activeInboxNavigationCallbackHandler;
 
     public CallbackQueryHandler(
         CallbackQueryAcknowledger callbackQueryAcknowledger,
-        List<SettingsCallbackHandler> handlers
+        List<SettingsCallbackHandler> handlers,
+        ActiveInboxNavigationCallbackHandler activeInboxNavigationCallbackHandler
     ) {
         this.callbackQueryAcknowledger = callbackQueryAcknowledger;
 
@@ -29,6 +31,7 @@ public class CallbackQueryHandler {
                 SettingsCallbackHandler::action,
                 Function.identity()
             ));
+        this.activeInboxNavigationCallbackHandler = activeInboxNavigationCallbackHandler;
     }
 
     public void handle(CallbackQuery callbackQuery) {
@@ -42,8 +45,29 @@ public class CallbackQueryHandler {
         Long chatId = callbackQuery.getMessage().getChatId();
         Integer messageId = callbackQuery.getMessage().getMessageId();
 
+        String callbackData = callbackQuery.getData();
+
+        if (callbackData == null) {
+            return;
+        }
+
+        if (callbackData.startsWith("settings:")) {
+            handleSettingsHandler(callbackData, tgUserId, chatId, messageId);
+            return;
+        }
+        if (callbackData.startsWith("inbox:page:")) {
+            activeInboxNavigationCallbackHandler.handle(tgUserId, chatId, messageId, callbackData);
+        }
+    }
+
+    private void handleSettingsHandler(
+        String callbackData,
+        Long tgUserId,
+        Long chatId,
+        Integer messageId
+    ) {
         SettingsCallbackAction action =
-            SettingsCallbackAction.from(callbackQuery.getData()).orElse(null);
+            SettingsCallbackAction.from(callbackData).orElse(null);
 
         if (action == null) {
             return;

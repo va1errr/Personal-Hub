@@ -54,6 +54,10 @@ public class InboxItem {
         return createdAt;
     }
 
+    public void process() {
+        this.status = InboxItemStatus.PROCESSED;
+    }
+
     private InboxItem(User user, String content) {
         this.user = user;
         this.content = InboxItem.normalizeContent(content);

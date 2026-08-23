@@ -6,9 +6,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
+
+import java.util.Optional;
 
 @ConditionalOnTelegramEnabled
 @Component
@@ -23,29 +26,17 @@ public class MessageSender {
         this.telegramClient = telegramClient;
     }
 
-    public boolean send(Long chatId, String text) {
+    public Optional<Message> send(Long chatId, String text) {
         SendMessage request = SendMessage.builder()
             .chatId(chatId)
             .text(text)
             .parseMode(ParseMode.HTML)
             .build();
 
-        try {
-            telegramClient.execute(request);
-
-            return true;
-        } catch (TelegramApiException exception) {
-            log.error(
-                "Failed to send Telegram message to chat {}",
-                chatId,
-                exception
-            );
-
-            return false;
-        }
+        return execute(request, chatId);
     }
 
-    public boolean send(Long chatId, String text, InlineKeyboardMarkup keyboard) {
+    public Optional<Message> send(Long chatId, String text, InlineKeyboardMarkup keyboard) {
         SendMessage request = SendMessage.builder()
             .chatId(chatId)
             .text(text)
@@ -53,10 +44,12 @@ public class MessageSender {
             .replyMarkup(keyboard)
             .build();
 
-        try {
-            telegramClient.execute(request);
+        return execute(request, chatId);
+    }
 
-            return true;
+    private Optional<Message> execute(SendMessage request, Long chatId) {
+        try {
+            return Optional.of(telegramClient.execute(request));
         } catch (TelegramApiException exception) {
             log.error(
                 "Failed to send Telegram message to chat {}",
@@ -64,7 +57,7 @@ public class MessageSender {
                 exception
             );
 
-            return false;
+            return Optional.empty();
         }
     }
 

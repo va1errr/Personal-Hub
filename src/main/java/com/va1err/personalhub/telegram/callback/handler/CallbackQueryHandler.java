@@ -1,35 +1,34 @@
-package com.va1err.personalhub.telegram.callback;
+package com.va1err.personalhub.telegram.callback.handler;
 
 import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
-import com.va1err.personalhub.telegram.message.MessageEditor;
-import com.va1err.personalhub.telegram.message.TelegramMessages;
-import com.va1err.personalhub.telegram.state.TimezoneInputState;
-import com.va1err.personalhub.telegram.ui.SettingsKeyboardFactory;
+import com.va1err.personalhub.telegram.callback.CallbackQueryAcknowledger;
+import com.va1err.personalhub.telegram.callback.SettingsCallbackAction;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @ConditionalOnTelegramEnabled
 @Component
 public class CallbackQueryHandler {
 
     private final CallbackQueryAcknowledger callbackQueryAcknowledger;
-    private final MessageEditor messageEditor;
-    private final TimezoneInputState timezoneInputState;
-    private final HealthCheckCallbackHandler healthCheckCallbackHandler;
-    private final SettingsKeyboardFactory settingsKeyboardFactory;
+    private final Map<SettingsCallbackAction, SettingsCallbackHandler> handlers;
 
     public CallbackQueryHandler(
         CallbackQueryAcknowledger callbackQueryAcknowledger,
-        MessageEditor messageEditor,
-        TimezoneInputState timezoneInputState,
-        HealthCheckCallbackHandler healthCheckCallbackHandler,
-        SettingsKeyboardFactory settingsKeyboardFactory
+        List<SettingsCallbackHandler> handlers
     ) {
         this.callbackQueryAcknowledger = callbackQueryAcknowledger;
-        this.messageEditor = messageEditor;
-        this.timezoneInputState = timezoneInputState;
-        this.healthCheckCallbackHandler = healthCheckCallbackHandler;
-        this.settingsKeyboardFactory = settingsKeyboardFactory;
+
+        this.handlers = handlers.stream()
+            .collect(Collectors.toUnmodifiableMap(
+                SettingsCallbackHandler::action,
+                Function.identity()
+            ));
     }
 
     public void handle(CallbackQuery callbackQuery) {
@@ -50,46 +49,17 @@ public class CallbackQueryHandler {
             return;
         }
 
-        switch (action) {
-            case TIMEZONE -> handleTimezone(tgUserId, chatId, messageId);
+        SettingsCallbackHandler handler = handlers.get(action);
 
-            case HEALTH_CHECK -> healthCheckCallbackHandler.handle(
-                tgUserId,
-                chatId,
-                messageId
-            );
-
-            case BACK -> handleBack(tgUserId, chatId, messageId);
+        if (handler == null) {
+            return;
         }
-    }
 
-    private void handleTimezone(Long tgUserId, Long chatId, Integer messageId) {
-        boolean messageEdited = messageEditor.edit(
+        handler.handle(new SettingsCallbackContext(
+            tgUserId,
             chatId,
-            messageId,
-            TelegramMessages.changeTimezone(),
-            settingsKeyboardFactory.back()
-        );
-
-        if (messageEdited) {
-            timezoneInputState.begin(
-                tgUserId,
-                chatId,
-                messageId,
-                TimezoneInputState.Operation.UPDATE
-            );
-        }
-    }
-
-    private void handleBack(Long tgUserId, Long chatId, Integer messageId) {
-        timezoneInputState.clear(tgUserId);
-
-        messageEditor.edit(
-            chatId,
-            messageId,
-            TelegramMessages.settings(),
-            settingsKeyboardFactory.main()
-        );
+            messageId
+        ));
     }
 
 }

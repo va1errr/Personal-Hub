@@ -1,4 +1,4 @@
-package com.va1err.personalhub.telegram.message;
+package com.va1err.personalhub.telegram.config;
 
 import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
 import org.springframework.beans.factory.annotation.Value;

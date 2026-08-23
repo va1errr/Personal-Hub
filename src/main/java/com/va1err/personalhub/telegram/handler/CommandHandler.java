@@ -2,8 +2,6 @@ package com.va1err.personalhub.telegram.handler;
 
 import com.va1err.personalhub.telegram.ConditionalOnTelegramEnabled;
 import com.va1err.personalhub.telegram.command.Command;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 
@@ -15,9 +13,6 @@ import java.util.stream.Collectors;
 @ConditionalOnTelegramEnabled
 @Component
 public class CommandHandler implements MessageHandler {
-
-    private static final Logger log =
-        LoggerFactory.getLogger(CommandHandler.class);
 
     private final Map<String, Command> commands;
     private final UnknownCommandHandler unknownCommandHandler;

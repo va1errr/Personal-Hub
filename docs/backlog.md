@@ -36,8 +36,8 @@
 |              | Expenses                 | Amount, on what                                | `V2`     | ❌    |
 |              | Monthly budget           | Track monthly budget                           | `V2`     | ❌    |
 |              | Low balance reminder     | Remind when balance go below threshold         | `V3`     | ❌    |
-| `System`     | Settings                 | Timezone, daily digest time, etc               | `V1`     | ❌    |
-|              | Health check             | Application condition check                    | `V1`     | ❌    |
+| `System`     | Settings                 | Timezone, daily digest time, etc               | `V1`     | ✅    |
+|              | Health check             | Application condition check                    | `V1`     | ✅    |
 |              | Export                   | `JSON/CSV` data export                         | `V3`     | ❌    |
 | `AI`         | Automatic classification | Record is automatically processed              | `V4`     | ❌    |
 |              | Date extraction          | Extracts deadline from the record              | `V4`     | ❌    |

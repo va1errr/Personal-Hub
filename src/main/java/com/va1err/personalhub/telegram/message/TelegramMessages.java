@@ -71,7 +71,7 @@ public final class TelegramMessages {
 
     public static String inboxItemSaved(String content) {
         return """
-            Saved to your inbox ✅:
+            Saved to your inbox:
 
             <i>%s</i>
             """.formatted(escapeHtml(content));

@@ -70,6 +70,31 @@ public class ActiveInboxItemsKeyboardFactory {
             .build();
     }
 
+    public InlineKeyboardMarkup process(Long id, int page) {
+        var toTaskButton = InlineKeyboardButton.builder()
+            .text("✅ Convert to Task")
+            .callbackData("inbox:toTask:item:" + id)
+            .build();
+
+        var toNoteButton = InlineKeyboardButton.builder()
+            .text("\uD83D\uDCDD Convert to Note")
+            .callbackData("inbox:toNote:item:" + id)
+            .build();
+
+        var backButton = InlineKeyboardButton.builder()
+            .text("← Back")
+            .callbackData("inbox:page:" + page)
+            .build();
+
+        return InlineKeyboardMarkup.builder()
+            .keyboard(List.of(
+                new InlineKeyboardRow(toTaskButton),
+                new InlineKeyboardRow(toNoteButton),
+                new InlineKeyboardRow(backButton)
+            ))
+            .build();
+    }
+
     private String limitContent(String content, int maxLength) {
         if (content == null || maxLength == 0) {
             return "";

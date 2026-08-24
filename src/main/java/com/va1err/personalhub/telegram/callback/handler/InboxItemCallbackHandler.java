@@ -100,7 +100,7 @@ public class InboxItemCallbackHandler {
                         Locale.ENGLISH
                     ))
             ),
-            activeInboxItemsKeyboardFactory.back(page)
+            activeInboxItemsKeyboardFactory.process(id, page)
         );
     }
 
